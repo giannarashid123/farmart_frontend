@@ -35,6 +35,32 @@ function Navbar() {
               Buy • Sell
             </p>
           </div>
+          <div className="flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8">
+            <Link
+              to="/signup"
+              className={`text-[10px] font-black uppercase tracking-widest transition-all hover:text-indigo-500 ${
+                isScrolled ? "text-slate-600" : "text-white"
+              }`}>
+              Browse Jobs
+            </Link>
+            <Link
+              to="/signup"
+              className={`text-[10px] font-black uppercase tracking-widest transition-all hover:text-indigo-500 ${
+                isScrolled ? "text-slate-600" : "text-white"
+              }`}>
+              Sign In
+            </Link>
+          </div>
+
+          <Link
+            to="/signup"
+            className="px-8 py-3 text-[10px] font-black uppercase tracking-widest text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20 hover:bg-slate-900 hover:shadow-none transition-all active:scale-95">
+            Get Started
+          </Link>
+        </div>
+      </div>
+    </nav>
 
     );
 }
