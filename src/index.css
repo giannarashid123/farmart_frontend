@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+
+    /* Define custom themes and styles using @theme */
+    @theme {
+      --color-primary: #ff0000;
+      --font-family-sans: Inter, sans-serif;
+    }
