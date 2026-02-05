@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-
 function Navbar() {
-    return (
-        <nav
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Effect to handle scroll background change
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <nav
       className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
         isScrolled
           ? "bg-white/80 backdrop-blur-lg py-3 shadow-xl shadow-slate-900/5"
@@ -26,16 +36,19 @@ function Navbar() {
               className={`text-xl font-black uppercase italic tracking-tighter transition-colors ${
                 isScrolled ? "text-slate-900" : "text-white"
               }`}>
-              FARM<span className="text-indigo-500">ART</span>
+              Writers<span className="text-indigo-500">Hub</span>
             </h1>
-             <p
+            <p
               className={`text-[10px] font-black uppercase tracking-[0.2em] mt-1 transition-colors ${
                 isScrolled ? "text-slate-400" : "text-white/60"
               }`}>
-              Buy • Sell
+              Connect • Create
             </p>
           </div>
-          <div className="flex items-center gap-8">
+        </Link>
+
+        {/* RIGHT: NAVIGATION */}
+        <div className="flex items-center gap-8">
           <div className="hidden md:flex items-center gap-8">
             <Link
               to="/signup"
@@ -61,8 +74,7 @@ function Navbar() {
         </div>
       </div>
     </nav>
-
-    );
+  );
 }
 
 export default Navbar;
