@@ -6,7 +6,7 @@ function Header() {
   return (
     <>
       {/* HERO SECTION */}
-      <div className="relative bg-[url('/Home.jpg')] bg-cover bg-center h-screen w-full flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+      <div className="relative bg-[url('/HeaderBg.jpg')] bg-cover bg-center h-screen w-full flex flex-col items-center justify-center text-center px-6 overflow-hidden">
         {/* Darker overlay for better text readability on dark themes */}
         <div className="absolute inset-0 bg-emerald-950/60 backdrop-blur-[1px]" />
 
