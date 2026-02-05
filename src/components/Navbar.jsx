@@ -21,6 +21,10 @@ function Navbar() {
     { name: "About Us", path: "/about" },
   ];
 
+  // Dynamic colors based on scroll state
+  const textColor = isScrolled ? "text-white" : "text-slate-900";
+  const hoverColor = "hover:text-green-600";
+
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
@@ -31,15 +35,15 @@ function Navbar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-12">
         {/* LEFT: BRANDING */}
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center w-12 h-12 bg-green-600 rounded-xl transition-transform group-hover:scale-110 duration-500 shadow-lg shadow-green-900/40">
+          <div className="relative flex items-center justify-center w-12 h-12 bg-green-600 rounded-xl transition-transform group-hover:scale-110 duration-500 shadow-lg shadow-green-900/20">
             <Beef className="text-white w-7 h-7" />
-            <div className="absolute -inset-1 bg-green-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition"></div>
           </div>
           <div className="leading-none">
-            <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white">
+            <h1
+              className={`text-2xl font-black uppercase italic tracking-tighter transition-colors duration-500 ${textColor}`}>
               FARM<span className="text-green-600">ART</span>
             </h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-green-600/80">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-green-600">
               Livestock Exchange
             </p>
           </div>
@@ -51,7 +55,7 @@ function Navbar() {
             <Link
               key={link.name}
               to={link.path}
-              className="text-[11px] font-black uppercase tracking-widest text-white/80 hover:text-green-600 transition-colors relative group">
+              className={`text-[11px] font-black uppercase tracking-widest transition-all duration-500 drop-shadow-sm ${textColor} ${hoverColor} relative group`}>
               {link.name}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-600 transition-all group-hover:w-full"></span>
             </Link>
@@ -60,11 +64,11 @@ function Navbar() {
 
         {/* RIGHT: ACTIONS */}
         <div className="flex items-center gap-2 sm:gap-6">
-          {/* Cart Icon - Single Instance */}
+          {/* Cart Icon */}
           <Link
             to="/cart"
-            className="relative p-2 text-white hover:text-green-600 transition-colors">
-            <ShoppingCart size={22} />
+            className={`relative p-2 transition-colors duration-500 ${textColor} ${hoverColor}`}>
+            <ShoppingCart size={22} className="drop-shadow-sm" />
             <span className="absolute top-0 right-0 w-4 h-4 bg-green-600 text-[10px] flex items-center justify-center rounded-full font-bold text-white shadow-sm">
               0
             </span>
@@ -72,14 +76,18 @@ function Navbar() {
 
           <Link
             to="/signup"
-            className="hidden sm:block px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white bg-green-600 rounded-lg shadow-lg shadow-green-900/40 hover:bg-green-500 hover:-translate-y-0.5 transition-all active:scale-95">
+            className={`hidden sm:block px-7 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg shadow-lg ${
+              isScrolled
+                ? "bg-green-600 text-white hover:bg-green-500 shadow-green-950/40"
+                : "bg-slate-900 text-white hover:bg-green-600 shadow-slate-900/20"
+            } hover:-translate-y-0.5 active:scale-95`}>
             Get Started
           </Link>
 
-          {/* MOBILE MENU TOGGLE */}
+          {/* MOBILE TOGGLE */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 text-white hover:bg-green-800/50 rounded-lg transition-colors">
+            className={`lg:hidden p-2 rounded-lg transition-colors ${textColor}`}>
             {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
@@ -90,13 +98,13 @@ function Navbar() {
         className={`lg:hidden absolute w-full bg-green-950 border-b border-green-900 transition-all duration-500 ease-in-out overflow-hidden ${
           isMobileMenuOpen ? "max-h-[450px] opacity-100" : "max-h-0 opacity-0"
         }`}>
-        <div className="flex flex-col p-8 gap-6 bg-green-950/50">
+        <div className="flex flex-col p-8 gap-6 bg-green-950">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-sm font-bold uppercase tracking-widest text-white hover:text-green-600 transition-colors">
+              className="text-sm font-bold uppercase tracking-widest text-white hover:text-green-500 transition-colors">
               {link.name}
             </Link>
           ))}
