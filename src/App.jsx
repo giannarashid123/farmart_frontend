@@ -1,67 +1,59 @@
-import React from "react";
 import { Routes, Route } from "react-router-dom";
-
-// Pages
 import Home from "./pages/Home";
 import SignUp from "./pages/SignUp";
 import BrowseLivestock from "./pages/BrowseLivestock";
 import Marketplace from "./pages/Marketplace";
 import LivestockDetail from "./pages/LivestockDetail";
-
-// Components
+import BuyerDashboard from "./pages/BuyerDashboard";
+import BuyerOverview from "./pages/BuyerOverview";
+import BuyerOrders from "./pages/BuyerOrders";
+import BuyerWishlist from "./pages/BuyerWishlist";
+import BuyerSettings from "./pages/BuyerSettings";
+import FarmerDashboard from "./pages/FarmerDashboard";
+import Unauthorized from "./pages/Unauthorized";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-/**
- * App Component
- * * Note: Ensure your Navbar 'Get Started' button links to "/auth"
- * to match the Route defined below.
- */
 function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      {/* Navbar stays at the top of every page */}
+    <>
       <Navbar />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<SignUp />} />
+        <Route path="/browse" element={<BrowseLivestock />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/livestock/:id" element={<LivestockDetail />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* Main content area expands to fill space so footer stays at bottom */}
-      <main className="flex-grow">
-        <Routes>
-          {/* Landing Page */}
-          <Route path="/" element={<Home />} />
+        {/* Protected Buyer Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["buyer"]}>
+              <BuyerDashboard />
+            </ProtectedRoute>
+          }>
+          <Route index element={<BuyerOverview />} />
+          <Route path="orders" element={<BuyerOrders />} />
+          <Route path="wishlist" element={<BuyerWishlist />} />
+          <Route path="settings" element={<BuyerSettings />} />
+        </Route>
 
-          {/* Authentication (Login/Register) */}
-          <Route path="/auth" element={<SignUp />} />
-
-          {/* Livestock Discovery */}
-          <Route path="/browse" element={<BrowseLivestock />} />
-
-          {/* Main Marketplace Grid */}
-          <Route path="/marketplace" element={<Marketplace />} />
-
-          {/* Dynamic Route for individual animals */}
-          <Route path="/livestock/:id" element={<LivestockDetail />} />
-
-          {/* Fallback for 404 - Optional but recommended */}
-          <Route
-            path="*"
-            element={
-              <div className="pt-40 text-center">
-                <h1 className="text-4xl font-bold text-slate-900">
-                  404 - Page Not Found
-                </h1>
-                <a
-                  href="/"
-                  className="text-green-600 underline mt-4 inline-block">
-                  Go Home
-                </a>
-              </div>
-            }
-          />
-        </Routes>
-      </main>
-
-      
-    </div>
+        {/* Protected Farmer Routes */}
+        <Route
+          path="/farmer-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["farmer"]}>
+              <FarmerDashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+      <Footer />
+    </>
   );
 }
 
