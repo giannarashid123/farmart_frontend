@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Tractor, MapPin, Phone, ShoppingBag, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -15,14 +15,22 @@ const KENYAN_COUNTIES = [
 ];
 
 const SignUp = () => {
-  const { login, register } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(false);
   const [role, setRole] = useState('farmer');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Pre-select role from navigation state
+  useEffect(() => {
+    if (location.state?.role) {
+      setRole(location.state.role);
+    }
+  }, [location.state]);
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -68,35 +76,64 @@ const SignUp = () => {
     }
 
     try {
-      let result;
+      let endpoint;
+      let payload;
       
       if (isLogin) {
-        // Use context login function
-        result = await login(formData.email, formData.password);
+        endpoint = '/api/auth/login';
+        payload = formData;
       } else {
-        // Use context register function with role
-        result = await register({ ...formData, role });
+        endpoint = '/api/auth/register';
+        payload = { ...formData, role }; // Include role for registration
+      }
+      
+      const response = await fetch(`http://localhost:5000${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage({ type: 'error', text: data.error || data.message || 'Action failed' });
+        setIsLoading(false);
+        return;
       }
 
-      if (result.success) {
+      // --- SUCCESS LOGIC ---
+      if (isLogin) {
+        // 1. Manually Save to Storage (The Fix for the Race Condition)
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('currentUser', JSON.stringify(data));
+        
+        // 2. Update Context (For the UI)
+        await login(data);
+        
+        // 3. Determine Role & Redirect
+        const role = data.user?.role || data.role || '';
+        const cleanRole = role.toLowerCase();
+        
+        if (cleanRole === 'farmer') {
+          window.location.href = '/farmer-dashboard'; // Force full reload
+        } else {
+          window.location.href = '/dashboard'; // Force full reload
+        }
+      } else {
+        // --- REGISTRATION LOGIC ---
         setMessage({ 
           type: 'success', 
-          text: isLogin ? 'Welcome back! Login successful.' : 'Welcome to Farmart! Account created.' 
+          text: 'Account created successfully! Please log in.' 
         });
-        
-        // Role-based redirection after 1.5 seconds
-        setTimeout(() => {
-          if (role === 'buyer') {
-            navigate('/dashboard');
-          } else if (role === 'farmer') {
-            navigate('/farmer-dashboard');
-          }
-        }, 1500);
-      } else {
-        setMessage({ type: 'error', text: result.error });
+        setIsLogin(true);
+        setFormData(prev => ({
+          ...prev,
+          password: '',
+          confirmPassword: ''
+        }));
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Connection failed. Please try again.' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Connection failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -296,6 +333,8 @@ const SignUp = () => {
         </form>
 
         <p className="text-center text-slate-500 text-sm mt-6">By continuing, you agree to Farmart's Terms of Service</p>
+
+        {/* Removed System Health Check */}
       </div>
     </div>
   );

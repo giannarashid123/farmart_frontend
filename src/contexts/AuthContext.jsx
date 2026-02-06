@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 
 const AuthContext = createContext(null);
 
@@ -12,86 +11,66 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem('currentUser');
+    const token = localStorage.getItem('access_token');
+    
+    if (saved && token) {
+      try {
+        const user = JSON.parse(saved);
+        return user;
+      } catch (e) {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('access_token');
+      }
+    }
+    return null;
+  });
+  
+  const isAuthenticated = !!currentUser;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore session from localStorage on load
+    if (!currentUser) {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('access_token');
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
     const token = localStorage.getItem('access_token');
     
     if (storedUser && token) {
       try {
         const user = JSON.parse(storedUser);
-        setCurrentUser(user);
-        setIsAuthenticated(true);
+        if (user && typeof user === 'object') {
+          setCurrentUser(user);
+        } else {
+          throw new Error('Invalid user data');
+        }
       } catch (e) {
-        // Invalid stored user data
         localStorage.removeItem('currentUser');
         localStorage.removeItem('access_token');
+        setCurrentUser(null);
       }
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
-        email,
-        password
-      });
-      
-      if (response.data.access_token) {
-        const { access_token, ...userData } = response.data;
-        
-        // Save to localStorage for persistence
-        localStorage.setItem('access_token', access_token);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        
-        // Update state
-        setCurrentUser(userData);
-        setIsAuthenticated(true);
-        
-        return { success: true };
-      }
-      return { success: false, error: 'Login failed' };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.error || 'Login failed' };
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', userData);
-      
-      if (response.data.access_token) {
-        const { access_token, ...newUserData } = response.data;
-        
-        // Save to localStorage for persistence
-        localStorage.setItem('access_token', access_token);
-        localStorage.setItem('currentUser', JSON.stringify(newUserData));
-        
-        // Update state
-        setCurrentUser(newUserData);
-        setIsAuthenticated(true);
-        
-        return { success: true };
-      }
-      return { success: false, error: 'Registration failed' };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.error || 'Registration failed' };
-    }
+  const login = (userData) => {
+    const access_token = userData.access_token || userData.token;
+    const user = userData.user || userData.data || userData;
+    
+    setCurrentUser(user);
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('currentUser', JSON.stringify(user));
   };
 
   const logout = () => {
-    // Clear localStorage
     localStorage.removeItem('access_token');
     localStorage.removeItem('currentUser');
-    
-    // Clear state
     setCurrentUser(null);
-    setIsAuthenticated(false);
   };
 
   const value = {
@@ -99,7 +78,6 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     loading,
     login,
-    register,
     logout
   };
 
