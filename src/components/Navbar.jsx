@@ -20,7 +20,7 @@ function Navbar() {
 
   const navLinks = [
     { name: "Browse Livestock", path: "/browse" },
-    { name: "Marketplace", path: "/market" },
+    { name: "Marketplace", path: "/marketplace" },
     { name: "Sell", path: isAuthenticated ? "/sell" : "#", clickHandler: !isAuthenticated ? () => navigate("/auth") : null },
     { name: "About Us", path: "/about" },
   ];
