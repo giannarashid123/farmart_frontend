@@ -1,8 +1,19 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Header() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSellClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      navigate("/auth");
+    }
+  };
   return (
     <>
       {/* HERO SECTION */}
@@ -44,7 +55,8 @@ function Header() {
               Browse Animals <ChevronRight size={18} />
             </a>
             <a
-              href="/sell"
+              href={isAuthenticated ? "/sell" : "#"}
+              onClick={handleSellClick}
               className="bg-white/90 backdrop-blur-sm border-2 border-slate-200 text-slate-900 px-10 py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:border-green-600 hover:text-green-600 transition-all flex items-center justify-center shadow-sm">
               Sell Livestock
             </a>

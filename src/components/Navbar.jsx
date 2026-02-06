@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ShoppingCart } from "lucide-react";
-import { Icon } from "@iconify/react"; // Fixed: Added missing import
+import { Icon } from "@iconify/react";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -17,8 +20,12 @@ function Navbar() {
 
   const navLinks = [
     { name: "Browse Livestock", path: "/browse" },
-    { name: "Marketplace", path: "/market" },
-    { name: "Sell", path: "/sell" },
+    { name: "Marketplace", path: "/marketplace" },
+    {
+      name: "Sell",
+      path: isAuthenticated ? "/sell" : "#",
+      clickHandler: !isAuthenticated ? () => navigate("/auth") : null,
+    },
     { name: "About Us", path: "/about" },
   ];
 
@@ -64,6 +71,7 @@ function Navbar() {
             <Link
               key={link.name}
               to={link.path}
+              onClick={link.clickHandler}
               className={`text-[11px] font-black uppercase tracking-widest transition-all duration-500 drop-shadow-sm ${textColor} ${hoverColor} relative group`}>
               {link.name}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-600 transition-all group-hover:w-full"></span>
@@ -84,11 +92,11 @@ function Navbar() {
           </Link>
 
           <Link
-            to="/signup"
+            to="/auth"
             className={`hidden sm:block px-7 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg shadow-lg ${
               isScrolled
                 ? "bg-green-600 text-white hover:bg-green-500 shadow-green-950/40"
-                : "bg-slate-900 text-white hover:bg-green-600 shadow-slate-900/20"
+                : "bg-green-600 text-white hover:bg-green-500 shadow-slate-900/20"
             } hover:-translate-y-0.5 active:scale-95`}>
             Get Started
           </Link>
@@ -112,14 +120,18 @@ function Navbar() {
             <Link
               key={link.name}
               to={link.path}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={
+                link.clickHandler
+                  ? link.clickHandler
+                  : () => setIsMobileMenuOpen(false)
+              }
               className="text-sm font-bold uppercase tracking-widest text-white hover:text-green-500 transition-colors">
               {link.name}
             </Link>
           ))}
           <hr className="border-green-800/30" />
           <Link
-            to="/signup"
+            to="/auth"
             onClick={() => setIsMobileMenuOpen(false)}
             className="w-full py-4 text-center text-[10px] font-black uppercase tracking-widest text-white bg-green-600 rounded-lg shadow-lg">
             Get Started
