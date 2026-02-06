@@ -18,10 +18,10 @@ const Home = () => {
             <span>Hello, {user?.email}! You're logged in as a {user?.role}.</span>
           ) : (
             <>
-              <Link to="/signup" className="btn btn-primary">
+              <Link to="/auth" className="btn btn-primary">
                 Get Started
               </Link>
-              <Link to="/login" className="btn btn-outline">
+              <Link to="/auth" className="btn btn-outline">
                 Sign In
               </Link>
             </>

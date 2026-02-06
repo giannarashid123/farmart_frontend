@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom tweaks to make sure it looks good immediately */
 @layer base {
   body {
     @apply bg-slate-50 text-slate-900;
