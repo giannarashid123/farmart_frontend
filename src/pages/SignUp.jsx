@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Mail, Lock, Eye, EyeOff, Tractor, MapPin, Phone, ShoppingBag, Loader2, AlertCircle, CheckCircle2, Sprout } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Tractor, MapPin, Phone, ShoppingBag, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+
+const KENYAN_COUNTIES = [
+  "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita/Taveta",
+  "Garissa", "Wajir", "Mandera", "Marsabit", "Isiolo", "Meru",
+  "Tharaka-Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua",
+  "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot",
+  "Samburu", "Trans Nzoia", "Uasin Gishu", "Elgeyo/Marakwet", "Nandi",
+  "Baringo", "Laikipia", "Nakuru", "Narok", "Kajiado", "Kericho",
+  "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia", "Siaya",
+  "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira", "Nairobi City"
+];
 
 const SignUp = () => {
   const [isLogin, setIsLogin] = useState(false);
@@ -11,12 +22,12 @@ const SignUp = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [formData, setFormData] = useState({
+    full_name: '',
+    phone_number: '',
+    location: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    farm_name: '',
-    location: '',
-    phone_number: ''
+    confirmPassword: ''
   });
 
   const handleChange = (e) => {
@@ -28,6 +39,23 @@ const SignUp = () => {
     e.preventDefault();
     setIsLoading(true);
     setMessage(null);
+
+    // Validate phone number for registration
+    if (!isLogin) {
+      const phone = formData.phone_number.trim();
+      const startsWith07 = /^07\d{8}$/.test(phone);
+      const startsWith01 = /^01\d{8}$/.test(phone);
+      const startsWith254 = /^\+254\d{9}$/.test(phone);
+
+      if (!startsWith07 && !startsWith01 && !startsWith254) {
+        setMessage({ 
+          type: 'error', 
+          text: 'Invalid phone number. Must start with 07/01 (10 digits) or +254 (13 digits).' 
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
 
     // Validate passwords match for registration
     if (!isLogin && formData.password !== formData.confirmPassword) {
@@ -63,165 +91,198 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
+      <div className="w-full max-w-md mx-auto shadow-xl rounded-2xl bg-white p-8">
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-xl mb-4">
-            <Sprout className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">Farmart</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Farmart</h1>
+          <p className="text-slate-600 mt-2">
+            {isLogin ? 'Sign in to your account' : 'Create your account'}
+          </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-card shadow-lg rounded-xl p-8 border border-border">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-foreground">
-              {isLogin ? 'Sign In' : 'Create Account'}
-            </h2>
+        {/* Toast Notifications */}
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg border flex items-start gap-3 ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+            {message.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            )}
+            <span className="text-sm">{message.text}</span>
           </div>
+        )}
 
-          {/* Toast Notifications */}
-          {message && (
-            <div className={`mb-6 p-4 rounded-lg border flex items-start gap-3 ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-              {message.type === 'success' ? (
-                <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
-              ) : (
-                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-              )}
-              <span className="text-sm">{message.text}</span>
+        {/* Mode Toggle */}
+        <div className="flex bg-slate-100 rounded-lg p-1 mb-6">
+          <button
+            type="button"
+            onClick={() => { setIsLogin(true); setMessage(null); }}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${isLogin ? 'bg-white text-primary shadow-sm' : 'text-slate-600'}`}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIsLogin(false); setMessage(null); }}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${!isLogin ? 'bg-white text-primary shadow-sm' : 'text-slate-600'}`}
+          >
+            Create Account
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {/* Role Selection (Register Mode Only) */}
+          {!isLogin && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-700 mb-3">I am a...</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole('farmer')}
+                  className={`flex-1 p-3 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${role === 'farmer' ? 'border-primary bg-green-50 text-primary' : 'border-slate-200 text-slate-600 hover:border-primary/50'}`}
+                >
+                  <Tractor className={`w-5 h-5 ${role === 'farmer' ? 'text-primary' : 'text-slate-400'}`} />
+                  <span className="text-sm font-medium">Farmer</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('buyer')}
+                  className={`flex-1 p-3 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${role === 'buyer' ? 'border-primary bg-green-50 text-primary' : 'border-slate-200 text-slate-600 hover:border-primary/50'}`}
+                >
+                  <ShoppingBag className={`w-5 h-5 ${role === 'buyer' ? 'text-primary' : 'text-slate-400'}`} />
+                  <span className="text-sm font-medium">Buyer</span>
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Mode Toggle */}
-          <div className="flex bg-secondary rounded-lg p-1 mb-6">
-            <button
-              type="button"
-              onClick={() => { setIsLogin(true); setMessage(null); }}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${isLogin ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground'}`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => { setIsLogin(false); setMessage(null); }}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${!isLogin ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground'}`}
-            >
-              Create Account
-            </button>
-          </div>
+          {/* Personal Details Section (Register Mode Only) */}
+          {!isLogin && (
+            <div className="mb-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-grow h-px bg-slate-200" />
+                <span className="text-xs font-medium text-slate-500 uppercase">Personal Details</span>
+                <div className="flex-grow h-px bg-slate-200" />
+              </div>
+              <div className="space-y-4">
+                {/* Full Name */}
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    name="full_name" 
+                    value={formData.full_name} 
+                    onChange={handleChange} 
+                    placeholder="Full Name" 
+                    required 
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                  />
+                </div>
+                
+                {/* Phone Number */}
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="tel" 
+                    name="phone_number" 
+                    value={formData.phone_number} 
+                    onChange={handleChange} 
+                    placeholder="Phone Number (07X or +254)" 
+                    required 
+                    maxLength={13}
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                  />
+                </div>
 
-          <form onSubmit={handleSubmit}>
-            {/* Role Selection (Register Mode Only) */}
+                {/* Location (Type-to-Search) */}
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    name="location"
+                    list="county-list"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="Search or Select County"
+                    required
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <datalist id="county-list">
+                    {KENYAN_COUNTIES.map(county => (
+                      <option key={county} value={county} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Common Fields */}
+          <div className="space-y-4">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type="email" 
+                name="email" 
+                value={formData.email} 
+                onChange={handleChange} 
+                placeholder="Email Address" 
+                required 
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+              />
+            </div>
+            
+            {/* Password Field with Visibility Toggle */}
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                name="password" 
+                value={formData.password} 
+                onChange={handleChange} 
+                placeholder="Password" 
+                required 
+                className="w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            
+            {/* Confirm Password Field (Register Only) */}
             {!isLogin && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-muted-foreground mb-3">I am a...</label>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRole('farmer')}
-                    className={`flex-1 p-3 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${role === 'farmer' ? 'border-primary bg-primary/5 text-primary' : 'border-input text-muted-foreground hover:border-primary/50'}`}
-                  >
-                    <Tractor className={`w-5 h-5 ${role === 'farmer' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className="text-sm font-medium">Farmer</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole('buyer')}
-                    className={`flex-1 p-3 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${role === 'buyer' ? 'border-primary bg-primary/5 text-primary' : 'border-input text-muted-foreground hover:border-primary/50'}`}
-                  >
-                    <ShoppingBag className={`w-5 h-5 ${role === 'buyer' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className="text-sm font-medium">Buyer</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Farmer Fields */}
-            {role === 'farmer' && !isLogin && (
-              <div className="mb-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex-grow h-px bg-border" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase">Farm Details</span>
-                  <div className="flex-grow h-px bg-border" />
-                </div>
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Tractor className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input type="text" name="farm_name" value={formData.farm_name} onChange={handleChange} placeholder="Farm Name" className="w-full pl-10 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" />
-                  </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="Farm Location" className="w-full pl-10 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" />
-                  </div>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} placeholder="Phone Number" className="w-full pl-10 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Common Fields */}
-            <div className="space-y-4">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" required className="w-full pl-10 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" />
-              </div>
-              
-              {/* Password Field with Visibility Toggle */}
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  name="password" 
-                  value={formData.password} 
+                  type={showConfirmPassword ? 'text' : 'password'} 
+                  name="confirmPassword" 
+                  value={formData.confirmPassword} 
                   onChange={handleChange} 
-                  placeholder="Password" 
+                  placeholder="Confirm Password" 
                   required 
-                  className="w-full pl-10 pr-10 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" 
+                  className="w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              
-              {/* Confirm Password Field (Register Only) */}
-              {!isLogin && (
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input 
-                    type={showConfirmPassword ? 'text' : 'password'} 
-                    name="confirmPassword" 
-                    value={formData.confirmPassword} 
-                    onChange={handleChange} 
-                    placeholder="Confirm Password" 
-                    required 
-                    className="w-full pl-10 pr-10 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
+          </div>
 
-            {/* Submit Button */}
-            <button type="submit" disabled={isLoading} className="w-full mt-6 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-              {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Please wait...</span></> : <span>{isLogin ? 'Sign In' : 'Create Account'}</span>}
-            </button>
-          </form>
-        </div>
+          {/* Submit Button */}
+          <button type="submit" disabled={isLoading} className="w-full mt-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+            {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Please wait...</span></> : <span>{isLogin ? 'Sign In' : 'Create Account'}</span>}
+          </button>
+        </form>
 
-        <p className="text-center text-muted-foreground text-sm mt-6">By continuing, you agree to Farmart's Terms of Service</p>
+        <p className="text-center text-slate-500 text-sm mt-6">By continuing, you agree to Farmart's Terms of Service</p>
       </div>
     </div>
   );
