@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ShoppingCart } from "lucide-react";
-import { Icon } from "@iconify/react"; // Fixed: Added missing import
+import { Icon } from "@iconify/react";
+import { useAuth } from "../contexts/AuthContext";
 
 function Navbar() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -18,7 +21,7 @@ function Navbar() {
   const navLinks = [
     { name: "Browse Livestock", path: "/browse" },
     { name: "Marketplace", path: "/market" },
-    { name: "Sell", path: "/sell" },
+    { name: "Sell", path: isAuthenticated ? "/sell" : "#", clickHandler: !isAuthenticated ? () => navigate("/auth") : null },
     { name: "About Us", path: "/about" },
   ];
 
@@ -74,6 +77,7 @@ function Navbar() {
             <Link
               key={link.name}
               to={link.path}
+              onClick={link.clickHandler}
               className={`text-[11px] font-black uppercase tracking-widest transition-all duration-500 drop-shadow-sm ${textColor} ${hoverColor} relative group`}>
               {link.name}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-600 transition-all group-hover:w-full"></span>
@@ -122,7 +126,7 @@ function Navbar() {
             <Link
               key={link.name}
               to={link.path}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={link.clickHandler ? link.clickHandler : () => setIsMobileMenuOpen(false)}
               className="text-sm font-bold uppercase tracking-widest text-white hover:text-green-500 transition-colors">
               {link.name}
             </Link>
