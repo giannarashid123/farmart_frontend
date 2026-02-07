@@ -117,7 +117,7 @@ function App() {
           />
         </Routes>
       </main>
-      <Footer />
+      
       <Toaster position="top-right" />
     </div>
   );
