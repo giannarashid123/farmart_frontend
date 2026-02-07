@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   User,
   Package,
@@ -11,12 +12,7 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-// Mock User Data
-const USER_DATA = {
-  fullName: 'Jeff Ouda',
-  role: 'Buyer',
-};
-
+// Sidebar navigation links
 const SIDEBAR_LINKS = [
   { icon: User, label: 'Overview', path: '/dashboard' },
   { icon: Package, label: 'My Orders', path: '/dashboard/orders' },
@@ -26,9 +22,13 @@ const SIDEBAR_LINKS = [
 
 function BuyerDashboard() {
   const location = useLocation();
+  const { currentUser, logout } = useAuth();
+
+  // Debug: Log user data to see what backend is sending
+  console.log('Dashboard User Data:', currentUser);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
+    logout();
     window.location.href = '/auth';
   };
 
@@ -39,25 +39,39 @@ function BuyerDashboard() {
     return location.pathname.startsWith(path);
   };
 
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (currentUser?.full_name) {
+      return currentUser.full_name.split(' ').map(n => n[0]).join('');
+    }
+    if (currentUser?.name) {
+      return currentUser.name.split(' ').map(n => n[0]).join('');
+    }
+    if (currentUser?.email) {
+      return currentUser.email[0].toUpperCase();
+    }
+    return '?';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Global Navbar */}
       <Navbar />
 
-      {/* Dashboard Container - Pushed down by Navbar height */}
-      <div className="flex pt-16">
-        {/* Left Sidebar - Fixed position below Navbar */}
-        <aside className="w-64 fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 overflow-y-auto">
+      {/* Dashboard Container - Centered with max-width */}
+      <div className="max-w-7xl mx-auto flex pt-16 min-h-[calc(100vh-4rem)]">
+        {/* Left Sidebar - Sticky below Navbar */}
+        <aside className="w-64 flex-shrink-0 hidden md:block border-r border-gray-200 bg-white sticky top-16 h-[calc(100vh-4rem)]">
           <div className="flex flex-col h-full">
             {/* User Info */}
             <div className="p-6 bg-green-600 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-lg font-bold">
-                  {USER_DATA.fullName.split(' ').map(n => n[0]).join('')}
+                  {getUserInitials()}
                 </div>
                 <div>
-                  <h3 className="font-bold">{USER_DATA.fullName}</h3>
-                  <p className="text-xs text-green-100 uppercase tracking-wider">{USER_DATA.role}</p>
+                  <h3 className="font-bold">{currentUser?.full_name || currentUser?.name || currentUser?.email?.split('@')[0] || 'Valued Buyer'}</h3>
+                  <p className="text-xs text-green-100 uppercase tracking-wider">{currentUser?.role || 'Buyer'}</p>
                 </div>
               </div>
             </div>
@@ -96,7 +110,7 @@ function BuyerDashboard() {
         </aside>
 
         {/* Right Main Content Area */}
-        <main className="flex-1 ml-64 p-6">
+        <main className="flex-1 p-6 overflow-y-auto">
           <div className="max-w-5xl mx-auto">
             <Outlet />
           </div>

@@ -1,40 +1,19 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, Trash2, ShoppingBag, ArrowLeft } from 'lucide-react';
-
-// Mock Wishlist Data
-const MOCK_WISHLIST = [
-  {
-    id: 1,
-    name: 'Boran Bull',
-    breed: 'Boran',
-    age: '3 years',
-    price: 85000,
-    location: 'Nairobi County',
-    image: '🐂',
-  },
-  {
-    id: 2,
-    name: 'East African Goat',
-    breed: 'Galla Goat',
-    age: '1 year',
-    price: 12500,
-    location: 'Kajiado County',
-    image: '🐐',
-  },
-  {
-    id: 3,
-    name: 'Dorper Sheep',
-    breed: 'Dorper',
-    age: '6 months',
-    price: 18000,
-    location: 'Uasin Gishu',
-    image: '🐑',
-  },
-];
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Trash2, ShoppingBag, ArrowLeft, Loader2 } from 'lucide-react';
+import api from '../api/axios';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../redux/cartSlice';
 
 function BuyerWishlist() {
-  const [wishlist, setWishlist] = useState(MOCK_WISHLIST);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Debug: Log wishlist items structure
+  console.log("Wishlist Items:", wishlistItems);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-KE', {
@@ -44,16 +23,55 @@ function BuyerWishlist() {
     }).format(amount);
   };
 
-  const handleRemove = (id) => {
-    setWishlist(wishlist.filter(item => item.id !== id));
+  // Fetch wishlist from API
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/wishlist/');
+        setWishlistItems(response.data || []);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching wishlist:', err);
+        setError('Failed to load wishlist');
+        setWishlistItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWishlist();
+
+    // Cleanup on unmount/logout
+    return () => {
+      setWishlistItems([]);
+      setLoading(false);
+    };
+  }, []);
+
+  const handleRemove = async (itemId) => {
+    try {
+      await api.delete(`/wishlist/${itemId}`);
+      setWishlistItems(wishlistItems.filter(item => item.id !== itemId));
+    } catch (err) {
+      console.error('Error removing from wishlist:', err);
+      alert('Failed to remove item from wishlist');
+    }
   };
 
   const handleBuyNow = (item) => {
-    alert(`Proceeding to buy: ${item.name}`);
+    // Add to cart using Redux
+    dispatch(addToCart({
+      id: item.animal.id,
+      name: `${item.animal.species} - ${item.animal.breed}`,
+      price: item.animal.price,
+      quantity: 1,
+    }));
+    navigate('/checkout');
   };
 
   // Empty State
-  if (wishlist.length === 0) {
+  if (!loading && wishlistItems.length === 0) {
     return (
       <div className="space-y-6">
         <div>
@@ -95,57 +113,88 @@ function BuyerWishlist() {
           <h1 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">
             My Wishlist
           </h1>
-          <p className="text-slate-500 mt-1">{wishlist.length} items saved</p>
+          <p className="text-slate-500 mt-1">
+            {loading ? 'Loading...' : `${wishlistItems.length} items saved`}
+          </p>
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-green-600" />
+          <span className="ml-2 text-slate-500">Loading wishlist...</span>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
+
       {/* Wishlist Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {wishlist.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            {/* Animal Image/Icon */}
-            <div className="h-48 bg-gradient-to-br from-green-50 to-slate-100 flex items-center justify-center text-6xl">
-              {item.image}
-            </div>
-
-            {/* Content */}
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">{item.name}</h3>
-                  <p className="text-sm text-slate-500">{item.breed} • {item.age}</p>
-                </div>
+      {!loading && !error && wishlistItems.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {wishlistItems.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+              {/* Animal Image/Icon */}
+              <div className="h-48 bg-gradient-to-br from-green-50 to-slate-100 flex items-center justify-center text-6xl">
+                {item.animal?.image_url ? (
+                  <img 
+                    src={item.animal.image_url} 
+                    alt={item.animal.species}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-6xl">🐂</span>
+                )}
               </div>
 
-              <p className="text-sm text-slate-500 mb-4 flex items-center gap-1">
-                <span className="text-green-600">📍</span> {item.location}
-              </p>
+              {/* Content */}
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      {item.animal?.species || 'Unknown'} - {item.animal?.breed || 'Unknown'}
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      {item.animal?.age ? `${item.animal.age} months` : 'Age unknown'}
+                    </p>
+                  </div>
+                </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                <span className="text-xl font-black text-green-600">
-                  {formatCurrency(item.price)}
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleRemove(item.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Remove from wishlist">
-                    <Trash2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleBuyNow(item)}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition-colors">
-                    <ShoppingBag size={16} />
-                    Buy Now
-                  </button>
+                <p className="text-sm text-slate-500 mb-4 flex items-center gap-1">
+                  <span className="text-green-600">📍</span> Available
+                </p>
+
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <span className="text-xl font-black text-green-600">
+                    {formatCurrency(item.animal?.price || 0)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleRemove(item.id)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove from wishlist">
+                      <Trash2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleBuyNow(item)}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition-colors">
+                      <ShoppingBag size={16} />
+                      Buy Now
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Back Link */}
       <Link
