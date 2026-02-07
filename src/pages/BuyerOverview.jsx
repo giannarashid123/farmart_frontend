@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 import {
   User,
   Package,
@@ -10,22 +12,59 @@ import {
   Mail,
 } from 'lucide-react';
 
-// Mock User Data
-const USER_DATA = {
-  fullName: 'Jeff Ouda',
-  role: 'Buyer',
-  phone: '+254 712 345 678',
-  location: 'Kiambu County',
-  email: 'jeff@example.com',
-};
-
-const STATS = {
-  activeOrders: 2,
-  wishlistItems: 4,
-  totalSpent: 145000,
-};
-
 function BuyerOverview() {
+  const { currentUser } = useAuth();
+  const [stats, setStats] = useState({
+    total_orders: 0,
+    total_spent: 0,
+    wishlist_count: 0,
+    loading: true,
+  });
+  
+  // Debug: Log user data to see what backend is sending
+  console.log('Current User Data:', currentUser);
+  
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch order stats
+        const ordersRes = await api.get('/orders/stats');
+        const orderStats = ordersRes.data || { total_orders: 0, total_spent: 0 };
+        
+        // Fetch wishlist count
+        const wishlistRes = await api.get('/wishlist/count');
+        const wishlistCount = wishlistRes.data?.count || 0;
+        
+        setStats({
+          total_orders: orderStats.total_orders || 0,
+          total_spent: orderStats.total_spent || 0,
+          wishlist_count: wishlistCount,
+          loading: false,
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        setStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+    
+    if (currentUser) {
+      fetchStats();
+    }
+  }, [currentUser]);
+  
+  // Clear stats on logout (handled by unmount)
+  useEffect(() => {
+    return () => {
+      setStats({ total_orders: 0, total_spent: 0, wishlist_count: 0, loading: true });
+    };
+  }, []);
+  
+  // Get user name for welcome message
+  const getUserFirstName = () => {
+    const displayName = currentUser?.full_name || currentUser?.name || currentUser?.email?.split('@')[0] || 'Buyer';
+    return displayName.split(' ')[0];
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
@@ -33,7 +72,7 @@ function BuyerOverview() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">
-              Welcome back, {USER_DATA.fullName.split(' ')[0]}!
+              Welcome back, {getUserFirstName()}!
             </h1>
             <p className="text-slate-500 mt-1">Ready to find your next livestock?</p>
           </div>
@@ -58,7 +97,7 @@ function BuyerOverview() {
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wider">Full Name</p>
-              <p className="font-bold text-slate-900">{USER_DATA.fullName}</p>
+              <p className="font-bold text-slate-900">{currentUser?.full_name || currentUser?.name || 'User'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -67,7 +106,7 @@ function BuyerOverview() {
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wider">Phone</p>
-              <p className="font-bold text-slate-900">{USER_DATA.phone}</p>
+              <p className="font-bold text-slate-900">{currentUser?.phone_number || currentUser?.phone || 'Not provided'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -76,7 +115,7 @@ function BuyerOverview() {
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wider">Location</p>
-              <p className="font-bold text-slate-900">{USER_DATA.location}</p>
+              <p className="font-bold text-slate-900">{currentUser?.location || 'Not provided'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -85,7 +124,7 @@ function BuyerOverview() {
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wider">Email</p>
-              <p className="font-bold text-slate-900">{USER_DATA.email}</p>
+              <p className="font-bold text-slate-900">{currentUser?.email || 'Not provided'}</p>
             </div>
           </div>
         </div>
@@ -99,8 +138,10 @@ function BuyerOverview() {
               <Package size={24} className="text-blue-600" />
             </div>
           </div>
-          <p className="text-3xl font-black text-slate-900">{STATS.activeOrders}</p>
-          <p className="text-sm text-slate-500 uppercase tracking-wider">Active Orders</p>
+          <p className="text-3xl font-black text-slate-900">
+            {stats.loading ? '-' : stats.total_orders}
+          </p>
+          <p className="text-sm text-slate-500 uppercase tracking-wider">Total Orders</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -109,7 +150,9 @@ function BuyerOverview() {
               <Heart size={24} className="text-pink-600" />
             </div>
           </div>
-          <p className="text-3xl font-black text-slate-900">{STATS.wishlistItems}</p>
+          <p className="text-3xl font-black text-slate-900">
+            {stats.loading ? '-' : stats.wishlist_count}
+          </p>
           <p className="text-sm text-slate-500 uppercase tracking-wider">Wishlist Items</p>
         </div>
 
@@ -119,7 +162,9 @@ function BuyerOverview() {
               <ShoppingBag size={24} className="text-green-600" />
             </div>
           </div>
-          <p className="text-3xl font-black text-slate-900">KSh {STATS.totalSpent.toLocaleString()}</p>
+          <p className="text-3xl font-black text-slate-900">
+            {stats.loading ? '-' : `KSh ${stats.total_spent.toLocaleString()}`}
+          </p>
           <p className="text-sm text-slate-500 uppercase tracking-wider">Total Spent</p>
         </div>
       </div>
