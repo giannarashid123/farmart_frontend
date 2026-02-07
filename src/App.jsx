@@ -2,10 +2,10 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchWishlist, clearWishlist } from './redux/wishlistSlice';
-import { fetchOrders, clearOrders } from './redux/ordersSlice';
-import { clearCart } from './redux/cartSlice';
-import { useAuth } from './context/AuthContext';
+import { fetchWishlist, clearWishlist } from "./redux/wishlistSlice";
+import { fetchOrders, clearOrders } from "./redux/ordersSlice";
+import { clearCart } from "./redux/cartSlice";
+import { useAuth } from "./context/AuthContext";
 
 // Pages
 import Home from "./pages/Home";
@@ -117,7 +117,7 @@ function App() {
           />
         </Routes>
       </main>
-      <Footer />
+      
       <Toaster position="top-right" />
     </div>
   );
