@@ -76,51 +76,40 @@ const SignUp = () => {
     }
 
     try {
-      let endpoint;
-      let payload;
-      
+      // --- LOGIN LOGIC ---
       if (isLogin) {
-        endpoint = '/api/auth/login';
-        payload = formData;
-      } else {
-        endpoint = '/api/auth/register';
-        payload = { ...formData, role }; // Include role for registration
-      }
-      
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setMessage({ type: 'error', text: data.error || data.message || 'Action failed' });
-        setIsLoading(false);
-        return;
-      }
-
-      // --- SUCCESS LOGIC ---
-      if (isLogin) {
-        // 1. Manually Save to Storage (The Fix for the Race Condition)
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('currentUser', JSON.stringify(data));
+        // Use AuthContext login function which sets loading state
+        const loggedInUser = await login(formData);
         
-        // 2. Update Context (For the UI)
-        await login(data);
-        
-        // 3. Determine Role & Redirect
-        const role = data.user?.role || data.role || '';
-        const cleanRole = role.toLowerCase();
-        
-        if (cleanRole === 'farmer') {
-          window.location.href = '/farmer-dashboard'; // Force full reload
+        if (loggedInUser) {
+          // Determine Role & Redirect using the returned user object
+          const userRole = loggedInUser.user?.role || loggedInUser.role || '';
+          const cleanRole = userRole.toLowerCase();
+          
+          if (cleanRole === 'farmer') {
+            window.location.href = '/farmer-dashboard';
+          } else {
+            window.location.href = '/dashboard';
+          }
         } else {
-          window.location.href = '/dashboard'; // Force full reload
+          setMessage({ type: 'error', text: 'Invalid credentials' });
         }
       } else {
         // --- REGISTRATION LOGIC ---
+        const response = await fetch(`/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, role }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setMessage({ type: 'error', text: data.error || data.message || 'Registration failed' });
+          setIsLoading(false);
+          return;
+        }
+
         setMessage({ 
           type: 'success', 
           text: 'Account created successfully! Please log in.' 
