@@ -98,3 +98,32 @@ const AddLivestock = () => {
     }
 
     setLoading(true);
+
+    try {
+      // Create FormData for multipart/form-data
+      const data = new FormData();
+      data.append("species", formData.species);
+      data.append("breed", formData.breed);
+      data.append("age", formData.age);
+      data.append("ageUnit", formData.ageUnit);
+      data.append("weight", formData.weight);
+      data.append("price", formData.price);
+      data.append("description", formData.description);
+      data.append("gender", formData.gender);
+      data.append("health_history", formData.health_history);
+      data.append("image", imageFile);
+
+      // Actual API call
+      const response = await api.post("/livestock/create", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success("Livestock listed successfully!");
+      navigate("/farmer-dashboard/inventory");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error(error.response?.data?.error || "Failed to upload livestock");
+    } finally {
+      setLoading(false);
+    }
+  };
