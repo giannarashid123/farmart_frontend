@@ -224,4 +224,51 @@ const AddLivestock = () => {
                 </div>
               </div>
             </div>
+  {/* Price Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Price <span className="text-red-500">*</span>{" "}
+                <span className="text-slate-400">(KES)</span>
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  min="0"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
+                />
+              </div>
+            </div>
 
+            {/* Gender Selection */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Gender</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="male"
+                    checked={formData.gender === "male"}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-slate-700">Male</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="female"
+                    checked={formData.gender === "female"}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-slate-700">Female</span>
+                </label>
+              </div>
+            </div>
