@@ -364,3 +364,34 @@ const AddLivestock = () => {
                 )}
               </div>
             </div>
+
+             {/* Summary Card */}
+            <div className="bg-white rounded-xl border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Summary</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Category</span>
+                  <span className="font-medium text-slate-900">
+                    {formData.species || "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Breed</span>
+                  <span className="font-medium text-slate-900">
+                    {formData.breed || "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Price</span>
+                  <span className="font-bold text-green-600">
+                    KES {formData.price ? parseFloat(formData.price).toLocaleString() : "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Photo</span>
+                  <span className={font-medium ${previewUrl ? "text-green-600" : "text-red-500"}}>
+                    {previewUrl ? "Uploaded" : "Required"}
+                  </span>
+                </div>
+              </div>
+            </div>
