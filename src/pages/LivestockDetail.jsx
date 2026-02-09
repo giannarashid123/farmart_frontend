@@ -296,3 +296,139 @@ function LivestockDetails() {
                 </div>
               </div>
             </div>
+
+            {/* Tabs Section */}
+            <div className="bg-white rounded-2xl shadow-sm mt-6 overflow-hidden">
+              {/* Tab Headers */}
+              <div className="flex border-b border-gray-100">
+                {['description', 'health', 'seller'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 py-4 text-sm font-semibold capitalize transition-colors ${
+                      activeTab === tab
+                        ? 'text-green-600 border-b-2 border-green-600'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {tab === 'health' ? 'Health Records' : tab === 'seller' ? 'Seller Info' : 'Description'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-6">
+                {activeTab === 'description' && (
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-2">About this animal</h3>
+                    <p className="text-slate-600 leading-relaxed">
+                      {animal?.description || 'No description available for this animal.'}
+                    </p>
+                    {animal?.features?.length > 0 && (
+                      <ul className="mt-4 space-y-2">
+                        {animal.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-2 text-slate-600">
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'health' && (
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-4">Health Records</h3>
+                    {animal?.health_records?.length > 0 ? (
+                      <ul className="space-y-3">
+                        {animal.health_records.map((record, idx) => (
+                          <li key={idx} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <Shield className="w-5 h-5 text-green-600" />
+                              <span className="font-medium text-slate-900">{record.vaccine}</span>
+                            </div>
+                            <span className="text-sm text-slate-500">{record.date}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-slate-500">No health records available</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'seller' && (
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-4">Seller Information</h3>
+                    <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
+                      <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-lg font-bold text-green-600">
+                          {animal?.farmer_name?.substring(0, 2)?.toUpperCase() || 'FM'}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-slate-900">{animal?.farmer_name || 'Unknown Farmer'}</h4>
+                          {animal?.is_verified && (
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-500">{animal?.farm_name || 'Farm Name'}</p>
+                      </div>
+                      <button
+                        onClick={handleMessageFarmer}
+                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700"
+                      >
+                        Contact
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Footer */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
+        <div className="flex gap-3">
+          <button
+            onClick={handleToggleWishlist}
+            className={`px-4 py-3 border-2 rounded-xl flex items-center justify-center ${
+              isWishlisted
+                ? 'border-red-200 bg-red-50 text-red-500'
+                : 'border-gray-200 text-gray-400'
+            }`}
+          >
+            <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+          </button>
+
+          <button
+            onClick={handleMessageFarmer}
+            className="px-4 py-3 border-2 border-gray-200 rounded-xl flex items-center justify-center text-gray-600"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={handleAddToCart}
+            className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            Add to Cart - {formatPrice(animal?.price)}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile footer padding */}
+      <div className="lg:hidden h-24" />
+    </div>
+  );
+}
+
+export default LivestockDetails;
