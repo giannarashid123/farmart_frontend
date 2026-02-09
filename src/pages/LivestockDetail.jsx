@@ -95,3 +95,45 @@ function LivestockDetails() {
 
     toast.success('Added to cart!');
   };
+
+  const [activeTab, setActiveTab] = useState('description');
+
+  const handleMessageFarmer = () => {
+    if (!currentUser) {
+      toast.error('Please login to message the farmer');
+      navigate('/auth');
+      return;
+    }
+
+    toast.success('Opening chat with farmer...');
+  };
+
+  {/* Tabs */}
+  <div className="bg-white rounded-2xl shadow-sm mt-6 overflow-hidden">
+   <div className="flex border-b border-gray-100">
+      {['description', 'health', 'seller'].map(tab => (
+        <button
+          key={tab}
+          onClick={() => setActiveTab(tab)}
+          className={`flex-1 py-4 text-sm font-semibold capitalize ${
+          activeTab === tab
+            ? 'text-green-600 border-b-2 border-green-600'
+            : 'text-slate-500'
+        }`}
+      >
+        {tab === 'health' ? 'Health Records' : tab === 'seller' ? 'Seller Info' : 'Description'}
+      </button>
+    ))}
+  </div>
+
+  {activeTab === 'description' && (
+  <p>{animal?.description || 'No description available for this animal.'}</p>
+)}
+
+  {activeTab === 'health' && (
+  <p>No health records available</p>
+)}
+
+  {activeTab === 'seller' && (
+  <button onClick={handleMessageFarmer}>Contact</button>
+)}
