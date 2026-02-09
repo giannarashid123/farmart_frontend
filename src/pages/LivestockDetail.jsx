@@ -21,7 +21,10 @@ function LivestockDetails() {
   const [animal, setAnimal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('description');
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
+  // Fetch animal details
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
@@ -40,7 +43,6 @@ function LivestockDetails() {
     fetchAnimal();
   }, [id]);
 
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   useEffect(() => {
     if (animal) {
@@ -96,8 +98,6 @@ function LivestockDetails() {
     toast.success('Added to cart!');
   };
 
-  const [activeTab, setActiveTab] = useState('description');
-
   const handleMessageFarmer = () => {
     if (!currentUser) {
       toast.error('Please login to message the farmer');
@@ -137,3 +137,30 @@ function LivestockDetails() {
   {activeTab === 'seller' && (
   <button onClick={handleMessageFarmer}>Contact</button>
 )}
+
+
+if (loading) {
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="bg-gray-200 rounded-2xl h-96 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+if (error) {
+  return (
+    <div className="min-h-screen bg-gray-50 py-8 text-center">
+      <Shield className="w-16 h-16 text-red-300 mx-auto mb-4" />
+      <p className="text-red-600">{error}</p>
+    </div>
+  );
+}
+
+{/* Mobile Sticky Footer */}
+<div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+  <button onClick={handleAddToCart}>
+    Add to Cart - {formatPrice(animal?.price)}
+  </button>
+</div>
