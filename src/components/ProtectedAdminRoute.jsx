@@ -25,3 +25,46 @@ const ProtectedAdminRoute = ({ children }) => {
       </div>
     );
   }
+
+  // Condition B: Not Logged In - Redirect to /auth (login)
+  if (!currentUser) {
+    console.log("🔐 Admin Route: Not logged in, redirecting to /auth");
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Extract user role with fallback for nested structures
+  let userRole = currentUser?.role;
+
+  // Handle nested object structure (e.g., currentUser.user.role)
+  if (!userRole && currentUser?.user?.role) {
+    userRole = currentUser.user.role;
+  }
+
+  // Handle array format (e.g., currentUser[0]?.role)
+  if (!userRole && Array.isArray(currentUser) && currentUser.length > 0) {
+    userRole = currentUser[0]?.role;
+  }
+
+  // Make role check case-insensitive
+  const userRoleLower = userRole?.toLowerCase();
+
+  // Condition C: Not an admin - Show access denied and redirect to home
+  if (userRoleLower !== "admin") {
+    console.log("🔐 Admin Route: Access denied - user role is:", userRole);
+
+    // Show toast notification
+    toast.error("Access Denied: Admin privileges required", {
+      duration: 4000,
+      icon: "🚫",
+    });
+
+    // Redirect to home page
+    return <Navigate to="/" replace />;
+  }
+
+  // Condition D: Success - User is admin, render the admin page
+  console.log("🔐 Admin Route: Access granted for admin user");
+  return children;
+};
+
+export default ProtectedAdminRoute;
