@@ -36,7 +36,6 @@ const FarmerRaiseDispute = () => {
     { value: 'other', label: 'Other' }
   ];
 
-
   const RESOLUTION_OPTIONS = [
     { value: 'refund', label: 'Request Payment', description: 'Get the payment you are owed' },
     { value: 'ban', label: 'Ban Buyer', description: 'Prevent this buyer from ordering again' },
@@ -80,7 +79,7 @@ const FarmerRaiseDispute = () => {
       return;
     }
 
-     // Validate file size (5MB max)
+    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('File size must be less than 5MB');
       return;
@@ -122,7 +121,7 @@ const FarmerRaiseDispute = () => {
       return;
     }
 
-     if (!resolution) {
+    if (!resolution) {
       toast.error('Please select what you want as resolution');
       return;
     }
@@ -161,7 +160,7 @@ const FarmerRaiseDispute = () => {
     }
   };
 
-   // Success State
+  // Success State
   if (submitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
