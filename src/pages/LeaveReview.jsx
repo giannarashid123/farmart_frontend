@@ -68,13 +68,21 @@ const LeaveReview = ({ order, onClose, onSubmit }) => {
    * Validates input and calls the onSubmit callback
    */
   const handleSubmit = async () => {
+    // Validate main rating
     if (rating === 0) {
       toast.error('Please select a rating');
       return;
     }
 
+    // Validate feedback length
     if (feedback.length < 10) {
       toast.error('Please provide feedback (at least 10 characters)');
+      return;
+    }
+
+    // Validate feedback not exceeding max length
+    if (feedback.length > 500) {
+      toast.error('Feedback cannot exceed 500 characters');
       return;
     }
 
@@ -87,7 +95,7 @@ const LeaveReview = ({ order, onClose, onSubmit }) => {
       onSubmit({
         orderId: order.id,
         rating,
-        feedback,
+        feedback: feedback.trim(),
         tags: selectedTags,
         farmerRating: farmerRating || null,
       });
@@ -95,6 +103,7 @@ const LeaveReview = ({ order, onClose, onSubmit }) => {
       setSubmitted(true);
       toast.success('Thanks for your feedback!');
     } catch (error) {
+      console.error('Review submission error:', error);
       toast.error('Failed to submit review. Please try again.');
     } finally {
       setSubmitting(false);
