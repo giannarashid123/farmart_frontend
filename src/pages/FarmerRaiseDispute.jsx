@@ -35,7 +35,7 @@ const FarmerRaiseDispute = () => {
     { value: 'contract_violation', label: 'Contract Violation' },
     { value: 'other', label: 'Other' }
   ];
-  
+
 
   const RESOLUTION_OPTIONS = [
     { value: 'refund', label: 'Request Payment', description: 'Get the payment you are owed' },
@@ -79,3 +79,46 @@ const FarmerRaiseDispute = () => {
       toast.error('Please select an image file');
       return;
     }
+
+     // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    setEvidence(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEvidencePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Remove selected image
+  const removeEvidence = () => {
+    setEvidence(null);
+    setEvidencePreview(null);
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validation
+    if (!buyerName.trim()) {
+      toast.error('Please enter the buyer name');
+      return;
+    }
+
+    if (!reason) {
+      toast.error('Please select a reason for the dispute');
+      return;
+    }
+
+    if (description.length < 20) {
+      toast.error('Description must be at least 20 characters');
+      return;
+    }
+
