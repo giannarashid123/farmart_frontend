@@ -147,3 +147,49 @@ const filteredSessions = sessions.filter(session => {
             </button>
           ))}
         </div>
+                {/* Sessions List */}
+        {filteredSessions.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">No negotiations found</h3>
+            <p className="text-gray-500">
+              {filter === 'all' 
+                ? 'Start negotiating by making an offer on a livestock item.'
+                : No ${filter} negotiations at the moment.
+              }
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="divide-y divide-gray-100">
+              {filteredSessions.map((session) => (
+                <div 
+                  key={session.id}
+                  onClick={() => navigate(/negotiations/${session.id})}
+                  className="p-6 hover:bg-gray-50 transition-colors cursor-pointer flex flex-col md:flex-row items-center justify-between gap-4 group"
+                >
+                  {/* Left: Info */}
+                  <div className="flex items-center gap-4 w-full">
+                    <div className={`w-2 h-12 rounded-full ${
+                      session.status === 'accepted' ? 'bg-green-500' : 
+                      session.status === 'pending' || session.status === 'counter' ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}></div>
+                    
+                    <div className="flex items-center gap-3">
+                      {session.animal?.image_url && (
+                        <img
+                          src={session.animal.image_url}
+                          alt={session.animal.species}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      )}
+                      <div>
+                        <h3 className="font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
+                          {session.animal?.breed || Negotiation #${session.id}}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {currentUser?.role === 'buyer' ? 'Seller: Farmer' : 'Buyer: Customer'} • {new Date(session.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
