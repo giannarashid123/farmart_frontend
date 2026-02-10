@@ -242,14 +242,14 @@ const LeaveReview = ({ order, onClose, onSubmit }) => {
                     onClick={() => setFarmerRating(star === farmerRating ? 0 : star)}
                     onMouseEnter={() => setHoverFarmerRating(star)}
                     onMouseLeave={() => setHoverFarmerRating(0)}
-                    className="p-0.5 transition-transform hover:scale-110"
+                    className="p-0.5 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 rounded-full"
                     disabled={submitting}
                     aria-label={`Rate farmer ${star} star${star > 1 ? 's' : ''}`}
                     role="radio"
                     aria-checked={farmerRating === star}
                   >
                     <Star
-                      className={`w-6 h-6 transition-colors ${
+                      className={`w-6 h-6 transition-colors duration-200 ${
                         star <= (hoverFarmerRating || farmerRating)
                           ? 'fill-yellow-400 text-yellow-400'
                           : 'fill-gray-100 text-gray-300'
@@ -260,7 +260,7 @@ const LeaveReview = ({ order, onClose, onSubmit }) => {
               </div>
             </div>
             {farmerRating > 0 && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1 transition-opacity duration-200">
                 {getRatingLabel(farmerRating)}
               </p>
             )}
