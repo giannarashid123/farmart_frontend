@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, MessageCircle, DollarSign, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { X, MessageCircle, DollarSign, Loader2, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -11,8 +11,14 @@ const BargainModal = ({ animal, isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState('form'); // 'form', 'success', 'error'
   const [errors, setErrors] = useState({});
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastError, setLastError] = useState(null);
   const modalRef = useRef(null);
   const previousActiveElement = useRef(null);
+  const abortControllerRef = useRef(null);
+
+  // Maximum retry attempts
+  const MAX_RETRIES = 3;
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -31,6 +37,10 @@ const BargainModal = ({ animal, isOpen, onClose }) => {
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
+      // Abort any pending requests on cleanup
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, [isOpen]);
 
@@ -75,6 +85,49 @@ const BargainModal = ({ animal, isOpen, onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Parse error response with fallback messages
+  const parseError = useCallback((error) => {
+    if (!error) return 'An unexpected error occurred';
+    
+    // Handle network errors
+    if (error.code === 'ECONNABORTED') {
+      return 'Request timed out. Please try again.';
+    }
+    if (!error.response) {
+      if (error.message === 'Network Error') {
+        return 'Unable to connect to server. Please check your internet connection.';
+      }
+      return 'Network error occurred. Please try again.';
+    }
+
+    // Handle HTTP errors with specific messages
+    const statusCode = error.response?.status;
+    const serverMessage = error.response?.data?.error || error.response?.data?.message;
+    
+    switch (statusCode) {
+      case 400:
+        return serverMessage || 'Invalid request. Please check your input.';
+      case 401:
+        return 'Your session has expired. Please log in again.';
+      case 403:
+        return 'You are not authorized to make offers.';
+      case 404:
+        return 'This animal listing is no longer available.';
+      case 409:
+        return serverMessage || 'You already have an active negotiation for this animal.';
+      case 422:
+        return serverMessage || 'Validation error. Please check your input.';
+      case 429:
+        return 'Too many requests. Please wait a moment before trying again.';
+      case 500:
+        return 'Server error. Please try again later.';
+      case 503:
+        return 'Service temporarily unavailable. Please try again later.';
+      default:
+        return serverMessage || 'Failed to submit offer. Please try again.';
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -84,24 +137,56 @@ const BargainModal = ({ animal, isOpen, onClose }) => {
 
     const amount = parseFloat(offerAmount);
 
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
     setIsLoading(true);
+    setLastError(null);
 
     try {
       const response = await api.post('/bargain/sessions', {
         animal_id: animal.id,
         offer_amount: amount,
         message: message || `I'm interested in buying this ${animal.species} for KES ${amount.toLocaleString()}`
+      }, {
+        signal: abortControllerRef.current.signal,
+        timeout: 10000 // 10 second timeout
       });
 
       setStep('success');
+      setRetryCount(0);
       toast.success('Offer submitted successfully!');
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to submit offer';
-      toast.error(errorMsg);
-      setStep('error');
+      // Don't handle if request was intentionally aborted
+      if (error.name === 'AbortError') {
+        return;
+      }
+
+      const errorMessage = parseError(error);
+      setLastError(errorMessage);
+      
+      // Check if we should retry
+      const shouldRetry = 
+        retryCount < MAX_RETRIES && 
+        (error.code === 'ECONNABORTED' || !error.response || error.response?.status >= 500);
+      
+      if (shouldRetry) {
+        setRetryCount(prev => prev + 1);
+        toast.loading('Retrying...', { id: 'retry-toast' });
+      } else {
+        setStep('error');
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle retry action
+  const handleRetry = async () => {
+    toast.dismiss('retry-toast');
+    setStep('form');
+    setRetryCount(0);
+    setLastError(null);
   };
 
   const handleClose = () => {
@@ -110,9 +195,15 @@ const BargainModal = ({ animal, isOpen, onClose }) => {
     setStep('form');
     setIsLoading(false);
     setErrors({});
+    setRetryCount(0);
+    setLastError(null);
     // Restore focus to previously active element
     if (previousActiveElement.current) {
       previousActiveElement.current.focus();
+    }
+    // Abort any pending requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
     onClose();
   };
@@ -299,17 +390,40 @@ const BargainModal = ({ animal, isOpen, onClose }) => {
                 <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
               <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                Something went wrong
+                {lastError?.includes('network') || lastError?.includes('connect') ? 'Connection Error' : 'Something went wrong'}
               </h3>
-              <p className="text-slate-600 mb-6">
-                Please try again or contact support.
+              <p className="text-slate-600 mb-6 max-w-sm mx-auto">
+                {lastError || 'An unexpected error occurred. Please try again or contact support.'}
               </p>
-              <button
-                onClick={() => setStep('form')}
-                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
-              >
-                Try Again
-              </button>
+              
+              {retryCount > 0 && (
+                <div className="mb-4 p-3 bg-orange-50 rounded-lg max-w-sm mx-auto">
+                  <p className="text-sm text-orange-700">
+                    Retry attempt {retryCount} of {MAX_RETRIES}
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={handleRetry}
+                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                  disabled={isLoading}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Try Again
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+              
+              <p className="text-xs text-slate-500 mt-4">
+                If the problem persists, please contact our support team.
+              </p>
             </div>
           )}
         </div>
