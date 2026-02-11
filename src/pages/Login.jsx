@@ -46,7 +46,7 @@ const Login = () => {
         } else if (cleanRole === 'farmer') {
           navigate('/farmer-dashboard', { replace: true });
         } else {
-          navigate('/marketplace', { replace: true });
+          navigate('/browse', { replace: true });
         }
       } else {
         setMessage({
@@ -143,9 +143,9 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-s-2">
                   Email Address
-                </label>
+               late-700 mb </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -243,3 +243,4 @@ const Login = () => {
 };
 
 export default Login;
+
