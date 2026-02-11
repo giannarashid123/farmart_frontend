@@ -16,6 +16,15 @@ const Cart = () => {
     return `KSh ${price.toLocaleString()}`;
   };
 
+  const handleCheckout = () => {
+    if (!currentUser) {
+      toast.error('Please login to proceed to checkout');
+      navigate('/login', { state: { from: '/cart' } });
+      return;
+    }
+    navigate('/checkout');
+  };
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
