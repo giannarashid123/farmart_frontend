@@ -11,6 +11,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { items, totalAmount } = useSelector(state => state.cart);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const formatPrice = (price) => {
     return `KSh ${price.toLocaleString()}`;
@@ -140,11 +141,18 @@ const Cart = () => {
               </div>
 
               <button
-                onClick={() => currentUser ? navigate('/checkout') : navigate('/auth')}
-                className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
-                <ShoppingBag size={20} />
-                {currentUser ? 'Proceed to Checkout' : 'Login to Checkout'}
-              </button>
+                onClick={() => {
+                  setIsCheckingOut(true);
+                  if (currentUser) {
+                    navigate('/checkout');
+                  } else {
+                    navigate('/login', { state: { from: '/cart' } });
+                  }
+                  setTimeout(() => setIsCheckingOut(false), 1000);
+                }}
+                disabled={isCheckingOut || items.length === 0}
+                className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={currentUser ? 'Proceed to checkout' : 'Login to checkout'}>
 
               <Link
                 to="/browse"
