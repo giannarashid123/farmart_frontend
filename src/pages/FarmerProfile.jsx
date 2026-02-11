@@ -8,6 +8,8 @@ function FarmerProfile() {
   const { currentUser, setCurrentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -57,7 +59,9 @@ function FarmerProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
+    setError(null);
+
     try {
       await api.put('/auth/profile', formData);
       // Fetch fresh data after update
@@ -79,9 +83,10 @@ function FarmerProfile() {
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to update profile:', error);
+      setError(error.response?.data?.message || 'Failed to update profile');
       toast.error(error.response?.data?.message || error.response?.data?.error || 'Failed to update profile');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
