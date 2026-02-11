@@ -92,7 +92,8 @@ const Cart = () => {
                     </span>
                     <button
                       onClick={() => dispatch(increaseQuantity(item.id))}
-                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      aria-label={`Increase quantity of ${item.name}`}>
                       <Plus size={16} className="text-slate-600" />
                     </button>
                   </div>
