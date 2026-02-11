@@ -199,8 +199,11 @@ function FarmerProfile() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Farm Name</label>
+                  <label htmlFor="farm_name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Farm Name
+                  </label>
                   <input
+                    id="farm_name"
                     type="text"
                     name="farm_name"
                     value={formData.farm_name}
@@ -209,8 +212,11 @@ function FarmerProfile() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Farm Location</label>
+                  <label htmlFor="farm_location" className="block text-sm font-medium text-gray-700 mb-1">
+                    Farm Location
+                  </label>
                   <input
+                    id="farm_location"
                     type="text"
                     name="farm_location"
                     value={formData.farm_location}
@@ -219,14 +225,21 @@ function FarmerProfile() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Farm Description</label>
+                  <label htmlFor="farm_description" className="block text-sm font-medium text-gray-700 mb-1">
+                    Farm Description
+                  </label>
                   <textarea
+                    id="farm_description"
                     name="farm_description"
                     value={formData.farm_description}
                     onChange={handleChange}
                     rows={3}
+                    aria-describedby="farm_description-helper"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#34A832] focus:border-transparent"
                   />
+                  <p id="farm_description-helper" className="mt-1 text-xs text-gray-500">
+                    Describe your farm, its history, and what you specialize in.
+                  </p>
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-4">
