@@ -102,8 +102,12 @@ const Cart = () => {
                     {formatPrice(item.price * item.quantity)}
                   </p>
                   <button
-                    onClick={() => dispatch(removeFromCart(item.id))}
-                    className="mt-2 text-red-500 hover:text-red-600 transition-colors flex items-center gap-1 ml-auto">
+                    onClick={() => {
+                      dispatch(removeFromCart(item.id));
+                      toast.success(`${item.name} removed from cart`);
+                    }}
+                    className="mt-2 text-red-500 hover:text-red-600 transition-colors flex items-center gap-1 ml-auto"
+                    aria-label={`Remove ${item.name} from cart`}>
                     <Trash2 size={16} />
                     <span className="text-sm">Remove</span>
                   </button>
